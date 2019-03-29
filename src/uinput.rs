@@ -27,7 +27,7 @@ pub fn get_address(mode: OperatingMode) -> net::SocketAddr {
     // Gets an address to bind to depending on OperatingMode
     if let OperatingMode::Send = mode { // You only need to know the port to open when sending
         return net::SocketAddr::new (
-            net::IpAddr::V6(net::Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 1)), // we'll bind our listener to loopback
+            net::IpAddr::V4(net::Ipv4Addr::new(127, 0, 0, 1)), // we'll bind our listener to loopback
             //get_port("Enter the port you want to open (preferred: 49152-65535): ")
             50000
         );
