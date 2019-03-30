@@ -3,9 +3,6 @@ mod send;
 mod receive;
 
 use std::io::{Read, stdin};
-use byteorder::{NetworkEndian, ReadBytesExt};
-use std::time::Duration;
-use std::option::Option;
 
 fn main() {
     println!("Welcome to RSFT - Rust Simple File Transfer");

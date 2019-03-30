@@ -16,6 +16,12 @@ impl Receiver {
         // Sets up a receiver
         let connect_addr = uinput::get_address(uinput::OperatingMode::Recv);
 
+        match connect_addr {
+            net::SocketAddr::V4(_) => println!("Got a V4!"),
+            net::SocketAddr::V6(_) => println!("Got a V6!")
+        }
+        println!("IP is : {}", connect_addr);
+
         let stream = net::TcpStream::connect(connect_addr)
             .expect("Could not connect to sender");
         uinput::log(&format!("Connected to : {}", connect_addr));
@@ -52,8 +58,8 @@ impl Receiver {
 }
 
 pub fn save_data(path: &str, data: Vec<u8>) {
-        let mut save_file = File::create(path)
-            .expect("Failed to create file to save data");
-        
-        uinput::log(&format!("Saved {} bytes !", save_file.write(&data).unwrap()));
-    }
+    let mut save_file = File::create(path)
+        .expect("Failed to create file to save data");
+    
+    uinput::log(&format!("Saved {} bytes !", save_file.write(&data).unwrap()));
+}

@@ -26,22 +26,23 @@ pub fn choose_between(message: &str, o1: &str, o2: &str) -> bool {
 pub fn get_address(mode: OperatingMode) -> net::SocketAddr {
     // Gets an address to bind to depending on OperatingMode
     if let OperatingMode::Send = mode { // You only need to know the port to open when sending
-        return net::SocketAddr::V4(net::SocketAddrV4::new(
-            net::Ipv4Addr::new(127, 0, 0, 1),
+        return net::SocketAddr::V4(
+            net::SocketAddrV4::new(
+                net::Ipv4Addr::new(127, 0, 0, 1),
             50000
         ));
     } else { // You need both the sender's IP and port when receiving
-        return net::SocketAddr::new (
-            get_ip("Enter sender's IP address(IPv4 or IPv6): "),
-            //get_port("Enter sender's port: ")
+        return net::SocketAddr::V4(
+            net::SocketAddrV4::new(
+                get_ip("Enter sender's IP address(IPv4 or IPv6): "),
             50000
-        );
+        ));
     }
 }
 
-fn get_ip(msg: &str) -> net::IpAddr {
+fn get_ip(msg: &str) -> net::Ipv4Addr {
     println!("{}", msg);
-    net::IpAddr::V4(loop {
+    loop {
         let mut input = String::new();
         io::stdin().read_line(&mut input)
            .expect("Failed to read user input");
@@ -53,7 +54,7 @@ fn get_ip(msg: &str) -> net::IpAddr {
                 continue;
             }
         }
-    })
+    }
 }
 
 fn get_port(msg: &str) -> u16 {
