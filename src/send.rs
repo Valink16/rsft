@@ -2,7 +2,7 @@ use super::uinput;
 use std::net;
 use std::fs;
 use std::io::{Write, Read};
-use byteorder::{NetworkEndian, WriteBytesExt, ReadBytesExt};
+use byteorder::{NetworkEndian, WriteBytesExt};
 
 pub struct Sender {
     // Structure for easily managing the sender part
