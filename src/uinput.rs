@@ -42,19 +42,19 @@ pub fn get_address(mode: OperatingMode) -> net::SocketAddr {
 
 fn get_ip(msg: &str) -> net::IpAddr {
     println!("{}", msg);
-    loop {
+    net::IpAddr::V4(loop {
         let mut input = String::new();
         io::stdin().read_line(&mut input)
            .expect("Failed to read user input");
         
-        match input.trim().parse::<net::IpAddr>() {
+        match input.trim().parse::<net::Ipv4Addr>() {
             Ok(ip) => break ip,
             Err(e) => {
-                println!("Please enter a valid IPv4 or IPv6 address, Error: {}", e);
+                println!("Please enter a valid IPv4 address, Error: {}", e);
                 continue;
             }
         }
-    }
+    })
 }
 
 fn get_port(msg: &str) -> u16 {
