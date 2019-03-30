@@ -28,7 +28,7 @@ pub fn get_address(mode: OperatingMode) -> net::SocketAddr {
     if let OperatingMode::Send = mode { // You only need to know the port to open when sending
         return net::SocketAddr::V4(
             net::SocketAddrV4::new(
-                net::Ipv4Addr::new(127, 0, 0, 1),
+                net::Ipv4Addr::new(0, 0, 0, 0),
             50000
         ));
     } else { // You need both the sender's IP and port when receiving
