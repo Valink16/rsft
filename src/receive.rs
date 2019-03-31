@@ -35,7 +35,7 @@ impl Receiver {
     pub fn read_size(&mut self) -> u64 {
         // Receives file size from sender and returns it
         let mut file_size_data: Vec<u8> = vec![0; 8];
-        self.stream_to_sender.read_to_end(&mut file_size_data)
+        self.stream_to_sender.read_exact(&mut file_size_data)
             .expect("Could not read from sender");
 
         let mut file_size_reader = Cursor::new(file_size_data);

@@ -51,7 +51,7 @@ impl Sender {
             .expect("Failed to send the size of the file to receiver's stream");
 
         let mut confirmation_reader: [u8; 1] = [255];
-        self.stream_to_receiver.read(&mut confirmation_reader)
+        self.stream_to_receiver.read_exact(&mut confirmation_reader)
             .expect("Failed to read confirmation from receiver");
 
         if confirmation_reader[0] == 1 {
