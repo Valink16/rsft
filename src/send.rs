@@ -3,13 +3,14 @@ use std::net;
 use std::fs;
 use std::io::{Write, Read};
 use byteorder::{NetworkEndian, WriteBytesExt};
+use std::io::{BufReader, BufWriter};
 
 pub struct Sender {
     // Structure for easily managing the sender part
     pub addr: net::SocketAddr,
     pub stream_to_receiver: net::TcpStream,
     pub receiver_addr: net::SocketAddr,
-    pub file: fs::File,
+    pub buf_file_reader: BufReader<fs::File>,
     pub file_metadata: fs::Metadata
 }
 
@@ -34,7 +35,7 @@ impl Sender {
             addr: bind_addr,
             stream_to_receiver: stream,
             receiver_addr: recv_addr,
-            file: f,
+            buf_file_reader: BufReader::new(f),
             file_metadata: fmd
         }
     }
@@ -61,18 +62,16 @@ impl Sender {
         }
     }
 
-    pub fn send_data(&mut self) {
+    pub fn send_data(self) { // This function consumes itself
         // Sends data to receiver 
         // /!\ Only use after confirmation of receiver (receiver will send a buffer containing a 1: [1])
-        let mut data: Vec<u8> = vec![0; self.file_metadata.len() as usize];
-        uinput::log(&format!("Successfully read {} bytes from the file", 
-            self.file.read(&mut data)
-                .expect("Failed to read from file")));
-        
-        // Sending data to receive
-        
-        self.stream_to_receiver.write_all(&data)
-            .expect("Failed to write to receiver's stream");
-        uinput::log(&format!("Successfully wrote {} bytes to the receiver's stream", data.len()));
+
+        let mut buf_to_receiver: BufWriter<net::TcpStream> = BufWriter::new(self.stream_to_receiver);
+    
+        // Sending data to receiver
+        buf_to_receiver.write(b"test")
+            .expect("Failed to send buffered data");
+    
+        uinput::log(&format!("Successfully wrote {} bytes to the receiver's stream", self.file_metadata.len()));
     }
 }
