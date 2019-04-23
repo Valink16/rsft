@@ -3,13 +3,15 @@ use std::net;
 use std::fs;
 use std::io::{Write, Read};
 use byteorder::{NetworkEndian, WriteBytesExt};
+use std::io::{BufReader};
+use std::io::{Seek, SeekFrom};
 
 pub struct Sender {
     // Structure for easily managing the sender part
     pub addr: net::SocketAddr,
     pub stream_to_receiver: net::TcpStream,
     pub receiver_addr: net::SocketAddr,
-    pub file: fs::File,
+    pub buf_file_reader: BufReader<fs::File>,
     pub file_metadata: fs::Metadata
 }
 
@@ -34,7 +36,7 @@ impl Sender {
             addr: bind_addr,
             stream_to_receiver: stream,
             receiver_addr: recv_addr,
-            file: f,
+            buf_file_reader: BufReader::new(f),
             file_metadata: fmd
         }
     }
@@ -61,18 +63,38 @@ impl Sender {
         }
     }
 
-    pub fn send_data(&mut self) {
+    pub fn send_data(&mut self) { 
         // Sends data to receiver 
         // /!\ Only use after confirmation of receiver (receiver will send a buffer containing a 1: [1])
-        let mut data: Vec<u8> = vec![0; self.file_metadata.len() as usize];
-        uinput::log(&format!("Successfully read {} bytes from the file", 
-            self.file.read(&mut data)
-                .expect("Failed to read from file")));
-        
-        // Sending data to receive
-        
-        self.stream_to_receiver.write_all(&data)
-            .expect("Failed to write to receiver's stream");
-        uinput::log(&format!("Successfully wrote {} bytes to the receiver's stream", data.len()));
+
+        let mut current = self.buf_file_reader.seek(SeekFrom::Current(0)).unwrap(); 
+        let file_size = self.file_metadata.len();
+
+        let max_buffer_size = 5000000; // The buffer will read 5MB at a time
+        let mut buffer_size = 0;
+
+        loop {
+            // Putting data into the buffer
+            if file_size - current < max_buffer_size { // Finding the right size for the buffer, if the buffer will be too big for the remaining data, 
+                buffer_size = file_size - current; // reduce the size
+            } else {
+                buffer_size = max_buffer_size; // else, keep it at max
+            }
+
+            let mut data_buffer: Vec<u8> = vec![0;  buffer_size as usize]; 
+            self.buf_file_reader.read_exact(&mut data_buffer)
+                .expect("Failed to buffer from file");
+
+            current = self.buf_file_reader.seek(SeekFrom::Current(0)).unwrap();
+            println!("Cursor position: {}", current);
+
+            self.stream_to_receiver.write(&data_buffer)
+                .expect("Failed to write to receiver");
+            uinput::log(&format!("Successfully wrote {} bytes to the receiver's stream", data_buffer.len()));
+
+            if current == file_size {
+                break;
+            }
+        }
     }
 }
