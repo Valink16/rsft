@@ -66,16 +66,35 @@ impl Sender {
     pub fn send_data(&mut self) { 
         // Sends data to receiver 
         // /!\ Only use after confirmation of receiver (receiver will send a buffer containing a 1: [1])
-        
-        // Sending data to receiver
+
+        let mut current = self.buf_file_reader.seek(SeekFrom::Current(0)).unwrap(); 
+        let file_size = self.file_metadata.len();
+
+        let max_buffer_size = 5000000; // The buffer will read 5MB at a time
+        let mut buffer_size = 0;
+
         loop {
-            let mut data_buffer: [u8; 5000000] = [0; 5000000]; // The buffer will read 5MB at a time
+            // Putting data into the buffer
+            if file_size - current < max_buffer_size { // Finding the right size for the buffer, if the buffer will be too big for the remaining data, 
+                buffer_size = file_size - current; // reduce the size
+            } else {
+                buffer_size = max_buffer_size; // else, keep it at max
+            }
+
+            let mut data_buffer: Vec<u8> = vec![0;  buffer_size as usize]; 
             self.buf_file_reader.read_exact(&mut data_buffer)
-                .expect("Failed to buffer data");
-            println!("Cursor position: {}", self.buf_file_reader.seek(SeekFrom::Current(0)).unwrap());
+                .expect("Failed to buffer from file");
+
+            current = self.buf_file_reader.seek(SeekFrom::Current(0)).unwrap();
+            println!("Cursor position: {}", current);
+
             self.stream_to_receiver.write(&data_buffer)
                 .expect("Failed to write to receiver");
             uinput::log(&format!("Successfully wrote {} bytes to the receiver's stream", data_buffer.len()));
+
+            if current == file_size {
+                break;
+            }
         }
     }
 }
